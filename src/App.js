@@ -7,7 +7,9 @@ class NoteCategoryRow extends React.Component {
     const category = this.props.category;
     return (
       <tr>
-        <th colSpan="2">{category}</th>
+        <th className="f3 fw7 bw1 tl bb silver pt3 pr3 bg-white" colSpan="3">
+          {category}
+        </th>
       </tr>
     );
   }
@@ -22,9 +24,11 @@ class NoteRow extends React.Component {
 
     return (
       <tr>
-        <td>{name}</td>
-        <td>{example}</td>
-        <td>{description}</td>
+        <td className="pv3 pr3 bb b--black-20">{name}</td>
+        <td className="pv3 pr3 bb b--black-20 blue">
+          <code>{example}</code>
+        </td>
+        <td className="pv3 pr3 bb b--black-20">{description}</td>
       </tr>
     );
   }
@@ -37,12 +41,10 @@ class NoteTable extends React.Component {
     const notes = this.props.notes;
 
     const rows = [];
-    let lastCategory = null;
 
-    notes.forEach((note) => {
-      if (note.name.toLowerCase().indexOf(filterText.toLowerCase()) === -1) {
-        return;
-      } else if (!selectOnly) {
+    const rowsPush = () => {
+      let lastCategory = null;
+      notes.map((note) => {
         if (note.category !== lastCategory) {
           rows.push(
             <NoteCategoryRow category={note.category} key={note.category} />
@@ -50,29 +52,61 @@ class NoteTable extends React.Component {
         }
         rows.push(<NoteRow note={note} key={note.name} />);
         lastCategory = note.category;
+      });
+    };
+
+    const filterSelected = () => {
+      let lastCategory = null;
+
+      if (!selectOnly) {
+        notes.map((note) => {
+          if (note.name.toLowerCase().includes(filterText.toLowerCase())) {
+            if (note.category !== lastCategory) {
+              rows.push(
+                <NoteCategoryRow category={note.category} key={note.category} />
+              );
+            }
+            rows.push(<NoteRow note={note} key={note.name} />);
+            lastCategory = note.category;
+          }
+        });
+      } else {
+        notes.map((note) => {
+          if (note.category.toLowerCase().includes(selectOnly.toLowerCase())) {
+            if (note.name.toLowerCase().includes(filterText.toLowerCase())) {
+              if (note.category !== lastCategory) {
+                rows.push(
+                  <NoteCategoryRow
+                    category={note.category}
+                    key={note.category}
+                  />
+                );
+              }
+              rows.push(<NoteRow note={note} key={note.name} />);
+              lastCategory = note.category;
+            }
+          }
+        });
       }
-      if (selectOnly !== note.category) {
-        return;
-      }
-      if (note.category !== lastCategory) {
-        rows.push(
-          <NoteCategoryRow category={note.category} key={note.category} />
-        );
-      }
-      rows.push(<NoteRow note={note} key={note.name} />);
-      lastCategory = note.category;
-    });
+    };
+
+    !selectOnly && !filterText ? rowsPush() : filterSelected();
 
     return (
-      <table>
+      <table
+        className="center pa3 mw7 mw-7-ns br3 hidden ba b--black-10 mv4 f6 w-100"
+        cellspacing="0"
+      >
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Example</th>
-            <th>Description</th>
+            <th className="fw6 bb b--black-20 tl pb3 pr3 bg-white">Name</th>
+            <th className="fw6 bb b--black-20 tl pb3 pr3 bg-white">Example</th>
+            <th className="fw6 bb b--black-20 tl pb3 pr3 bg-white">
+              Description
+            </th>
           </tr>
         </thead>
-        <tbody>{rows}</tbody>
+        <tbody className="lh-copy">{rows}</tbody>
       </table>
     );
   }
@@ -95,33 +129,34 @@ class SearchBar extends React.Component {
 
   render() {
     return (
-      <form>
+      <form className="center mw7 mw-7-ns br3 hidden ba b--black-10 mv4">
+        <h2 className="tc mt3">Search Notes</h2>
         <input
+          className="input-reset center ba b--black-20 pa2 db w-50 mv4"
           type="text"
           placeholder="Search..."
           value={this.props.filterText}
           onChange={this.handleFilterTextChange}
         />
-        <p>
-          <select
-            type="text"
-            onChange={this.handleSelectChange}
-            value={this.props.selectOnly}
-            required
-          >
-            <option value="">All</option>
-            <option value="HTML">HTML</option>
-            <option value="ES6">ES6</option>
-            <option value="Javascript">Javascript</option>
-            <option value="Advanced Javascript">Advanced Javascript</option>
-            <option value="Javascript Concepts">Javascript Concepts</option>
-            <option value="Debugging">Debugging</option>
-            <option value="Terminal Commands">Terminal Commands</option>
-            <option value="GIT">GIT</option>
-            <option value="React">React</option>
-            <option value="Redux">Redux</option>
-          </select>
-        </p>
+        <select
+          className="center ba b--black-20 pa2 db w-50 mb4"
+          type="text"
+          onChange={this.handleSelectChange}
+          value={this.props.selectOnly}
+          required
+        >
+          <option value="">All</option>
+          <option value="HTML">HTML</option>
+          <option value="ES6">ES6</option>
+          <option value="Javascript">Javascript</option>
+          <option value="Advanced Javascript">Advanced Javascript</option>
+          <option value="Javascript Concepts">Javascript Concepts</option>
+          <option value="Debugging">Debugging</option>
+          <option value="Terminal Commands">Terminal Commands</option>
+          <option value="GIT">GIT</option>
+          <option value="React">React</option>
+          <option value="Redux">Redux</option>
+        </select>
       </form>
     );
   }
@@ -185,12 +220,6 @@ class FilterableNoteTable extends React.Component {
   render() {
     return (
       <div>
-        <SearchBar
-          filterText={this.state.filterText}
-          onFilterTextChange={this.handleFilterTextChange}
-          selectOnly={this.state.selectOnly}
-          onSelectChange={this.handleSelectChange}
-        />
         <div className="center mw7 mw-7-ns br3 hidden ba b--black-10 mv4">
           <h2 className="tc mt3">Add a note</h2>
           <form onSubmit={this.handleSubmit}>
@@ -254,6 +283,12 @@ class FilterableNoteTable extends React.Component {
             />
           </form>
         </div>
+        <SearchBar
+          filterText={this.state.filterText}
+          onFilterTextChange={this.handleFilterTextChange}
+          selectOnly={this.state.selectOnly}
+          onSelectChange={this.handleSelectChange}
+        />
         <NoteTable
           notes={this.state.notes}
           filterText={this.state.filterText}
