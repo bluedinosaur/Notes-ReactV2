@@ -41,52 +41,47 @@ class NoteTable extends React.Component {
     const notes = this.props.notes;
 
     const rows = [];
+    const sortedRows = [];
 
-    const rowsPush = () => {
-      let lastCategory = null;
-      notes.map((note) => {
-        if (note.category !== lastCategory) {
-          rows.push(
-            <NoteCategoryRow category={note.category} key={note.category} />
-          );
-        }
-        rows.push(<NoteRow note={note} key={note.name} />);
-        lastCategory = note.category;
+    const sortRowsAndPush = () => {
+      const rowsArray = [];
+      rows.map((note) => {
+        rowsArray.push(note);
+      });
+      rowsArray.sort((a, b) => {
+        let x = a.name.toLowerCase();
+        let y = b.name.toLowerCase();
+        return x < y ? -1 : x > y ? 1 : 0;
+      });
+      rowsArray.map((note) => {
+        sortedRows.push(<NoteRow note={note} key={note.name} />);
       });
     };
 
-    const filterSelected = () => {
-      let lastCategory = null;
+    const rowsPush = () => {
+      notes.map((note) => {
+        rows.push(note);
+      });
+      sortRowsAndPush();
+    };
 
+    const filterSelected = () => {
       if (!selectOnly) {
         notes.map((note) => {
           if (note.name.toLowerCase().includes(filterText.toLowerCase())) {
-            if (note.category !== lastCategory) {
-              rows.push(
-                <NoteCategoryRow category={note.category} key={note.category} />
-              );
-            }
-            rows.push(<NoteRow note={note} key={note.name} />);
-            lastCategory = note.category;
+            rows.push(note);
           }
         });
+        sortRowsAndPush();
       } else {
         notes.map((note) => {
           if (note.category.toLowerCase().includes(selectOnly.toLowerCase())) {
             if (note.name.toLowerCase().includes(filterText.toLowerCase())) {
-              if (note.category !== lastCategory) {
-                rows.push(
-                  <NoteCategoryRow
-                    category={note.category}
-                    key={note.category}
-                  />
-                );
-              }
-              rows.push(<NoteRow note={note} key={note.name} />);
-              lastCategory = note.category;
+              rows.push(note);
             }
           }
         });
+        sortRowsAndPush();
       }
     };
 
@@ -106,7 +101,7 @@ class NoteTable extends React.Component {
             </th>
           </tr>
         </thead>
-        <tbody className="lh-copy">{rows}</tbody>
+        <tbody className="lh-copy">{sortedRows}</tbody>
       </table>
     );
   }
@@ -187,25 +182,23 @@ class FilterableNoteTable extends React.Component {
     });
   }
 
+  // handleEditNote(editNote){
+  //   this.setState({
+  //     data: this.state.data.map(el => (el.id === id ? {...el, text} : el))
+  //   });
+  // }
+
   handleSubmit(event) {
     event.preventDefault();
     const { notes } = this.state,
+      id = Math.floor(Math.random() * 1000 + 1),
       name = this.refs.name.value,
       category = this.refs.category.value,
       example = this.refs.example.value,
       description = this.refs.description.value;
-
     this.setState(
       {
-        notes: [
-          ...notes,
-          {
-            name,
-            category,
-            example,
-            description,
-          },
-        ],
+        notes: [...notes, { id, name, category, example, description }],
       },
 
       () => {
